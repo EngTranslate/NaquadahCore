@@ -35,18 +35,36 @@ end
 
 
 
-
-
+type Scroller <: Geo
+    x::Float32
+    y::Float32
+    contentWidth::Float32
+    contentHeight::Float32
+    Scroller() = new(0,0,0,0)
+end
+#-------------------------------------------------------------------------------
+type Point <: Geo
+    x::Float32
+    y::Float32
+    Point(x,y) = new(x,y)
+end
 #-------------------------------------------------------------------------------
 type Row
     flags::BitArray{1} #Any
     nodes::Array{Any}
     height::Float32
+    width::Float32 # because elements could be wider than the parent
     space::Float32 # Space remaining 'til full
     x::Float32
     y::Float32
-    Row() = new(falses(32),[],0,0,0,0)
-    Row(x, wide) = new(falses(32),[],0,wide,x,0)
+    Row() = new(falses(32),[],0,0,0,0,0)
+    Row(x, wide) = new(falses(32),[],0,0,wide,x,0)
+    Row(x, y, wide) = new(falses(32),[],0,0,wide,x,y)
+    function Row(row, x, y, w)
+        r = Row(x, y, w)
+        push!(row,r)
+        return r
+    end
 end
 #-------------------------------------------------------------------------------
 type Element
@@ -55,17 +73,12 @@ type Element
     children::Array{Element,1} # Children in order they appear in DOM
     rows::Array{Row,1} # A layout property
     shape::Any # link to layout representation of node
+    scroll::Scroller # Since shape get's destroyed we need the scroll-offsets here (prabably should be Nullable).
         function Element(DOM=Dict())
             parent = nothing
             children::Array{Element,1} = []
-            new(DOM, parent, children, [], nothing)
+            new(DOM, parent, children, [], nothing, Scroller())
         end
-end
-#-------------------------------------------------------------------------------
-type Point <: Geo
-    x::Float32
-    y::Float32
-    Point(x,y) = new(x,y)
 end
 #-------------------------------------------------------------------------------
 type BoxOutline <: Geo
@@ -118,11 +131,10 @@ end
 # ==============================================================================
 type NBox <: Draw
      @import_fields(BasicShape)
-    scroll::Point
     padding::Nullable{BoxOutline}
     border::Nullable{Border}
     NBox() = new(falses(64), [], 1, Nullable{BoxOutline}(), Nullable{Point}(), 0,0,0,0,
-                    Point(0,0), Nullable{BoxOutline}(), Nullable{Border}() )
+                 Nullable{BoxOutline}(), Nullable{Border}() )
 end
 
 type Circle <: Draw

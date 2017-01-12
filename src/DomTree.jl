@@ -57,7 +57,6 @@ function CreateDomTree(document::Page, parent::Element)
             for i in eachindex(DOM_nodes)
                 push!(parent.children, Element(DOM_nodes[i]))
                     node = parent.children[end]
-                    # printDict(node.DOM)
 
                     if haskey(DOM_nodes[i], "nodes") # Instantiate Children
                         CreateDomTree(document, node)

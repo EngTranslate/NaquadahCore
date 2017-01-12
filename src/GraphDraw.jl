@@ -1,7 +1,5 @@
 
-# c = @Canvas()
-# win = @Window("Canvas", 800, 600)
-# push!(win, c)
+
 include("DomUtilities.jl")
 
 module Naquadraw
@@ -28,18 +26,6 @@ include("LayoutBuild.jl")
 # ======================================================================================
 
 # ======================================================================================
-function InitializeRow(node,l, t, w, h)
-    (length(node.children) == 0) && return
-    rows = node.rows
-
-        if length(rows) == 0 # no row!
-          row = Row(l, w)  # row.x = l
-          row.y = t
-          push!(rows, row)
-        end
-end
-
-# ======================================================================================
 
 # ======================================================================================
 function setWindowSize(w,h, n)
@@ -48,10 +34,10 @@ function setWindowSize(w,h, n)
     n.shape.padding = BoxOutline(10,10,10,10,20,20)
     # we need to make sure we set VP based on padding!
     padding = get(n.shape.padding, BoxOutline(0,0,0,0,0,0))
-    n.shape.left    = padding.left
-    n.shape.top     = padding.top
-    n.shape.width   = w - padding.width
-    n.shape.height  = h - padding.height
+    n.shape.left    = 0
+    n.shape.top     = 0
+    n.shape.width   = w # - padding.width
+    n.shape.height  = h # - padding.height
     # IsHScroll, IsVScroll
     n.shape.flags[IsVScroll] = true
 end
@@ -67,8 +53,14 @@ function DrawContent(ctx, node)
           child = row.nodes[j]
           shape = getShape(child)
 
+          if length(row.nodes) > 0 && shape.flags[LineBreakBefore] == true # break-line before element
+              println("Yes")
+              # row = 
+              LineBreak(node)
+          end
+
           # Only draw if visible! node.shape.flags[FixedHeight] == true &&
-          if row.y < node.shape.top + node.shape.height
+          if row.y < (node.shape.top + node.shape.height) && node.shape.flags[DisplayNone] == false
                  isa(shape, TextLine) && DrawText(ctx, row, shape)
                  isa(shape, Circle) && DrawCircle(ctx, parentArea, shape)
                  isa(shape, NBox) &&

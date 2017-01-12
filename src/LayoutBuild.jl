@@ -95,24 +95,33 @@ end
 #======================================================================================#
 function MoveAll(node,x,y)
   shape = getShape(node)
-  shape.left += x
+  shape.left += x # Move this object!
   shape.top  += y
-    if isdefined(node, :rows)
+    if isdefined(node, :rows) # ..it has rows of children so let's move them!
       for i in 1:length(node.rows)
         row = node.rows[i]
+        row.x += x # ...don't forget to move the actual row
+        row.y += y
         for j in 1:length(row.nodes)
-            #node = getShape(row.nodes[j])
-            # println(node.text)
-            MoveAll(row.nodes[j],x,y)
+            MoveAll(row.nodes[j],x,y) # do the same for each child
         end
       end
     end
 end
 #======================================================================================#
-#
+#======================================================================================#
+function LineBreak(node) # .rows, parentArea
+    row = node.rows[end]
+    box = getContentBox(node.shape, getReal(node.shape)... )
+    l, t, w, h = box
+    FinalizeRow(box, row)
+    println("row.height: ",row.height)
+    Row(node.rows,  l,  row.y + row.height,  w)
+end
 #======================================================================================#
 # PushToRow(rows, parentArea, circle, circleHeight, circleWidth)
 function PushToRow(node, thing) # .rows, parentArea
+
   shape = node.shape
   if isa(thing,TextLine)
     thingShape = thing
@@ -121,26 +130,28 @@ function PushToRow(node, thing) # .rows, parentArea
   end
   rows = node.rows
   box = getContentBox(shape, getReal(shape)... )
-  println(". . . . . ", box)
-  boxleft, boxtop, boxwidth, boxheight = box
+  l, t, w, h = box
   thingWidth, thingHeight = getSize(thingShape)
     # if object is too wide make new row
     if length(rows) < 1
-        row = Row(boxleft, boxwidth)
-        row.y = boxtop
-        push!(rows, row)
+        Row(rows, l, t, w)
     end
     row = rows[end]
+    #  if length(row.nodes) > 0 && thingShape.flags[LineBreakBefore] == true # break-line before element
+    #      println("Yes")
+    #      LineBreak(node)
+    #  end
+
+     #      #      if length(row.nodes) < 1
+     #      #      node.shape.flags[LineBreakBefore] == true
     # not enough space.. new row!
     if row.space < thingWidth
-           FinalizeRow(box, row)
-            newRow = Row(boxleft + thingWidth, boxwidth - thingWidth)
+        FinalizeRow(box, row)
+           newRow = Row(rows,  l + thingWidth,  row.y + row.height,  w - thingWidth)
                 push!(newRow.nodes, thing)
                 newRow.height = thingHeight
-                thingShape.left = boxleft
-                newRow.y = row.y + row.height
+                thingShape.left = l
                 thingShape.top = newRow.y
-            push!(rows, newRow)
             return
     end
     # if object height is greater than row reset row.height
@@ -149,13 +160,19 @@ function PushToRow(node, thing) # .rows, parentArea
     end
     # add object to row and calculate remaining space
     if row.y == 0
-      row.y = boxtop
+      row.y = t
     end
     thingShape.top = row.y # TODO: a bunch of stuff
     thingShape.left = row.x
     row.space -= thingWidth
     row.x += thingWidth
     push!(row.nodes, thing)
+
+
+    #    node.shape.flags[LineBreakAfter] == true
+
+
+
 
 end
 

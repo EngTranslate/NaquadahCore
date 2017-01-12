@@ -1,6 +1,6 @@
 
 # module NaquadahEvents
-using Cairo, Gtk.ShortNames#, Naquadraw # Graphics,
+using Cairo, Gtk, Gtk.ShortNames#, Naquadraw # Graphics,
 
 export AttatchEvents
 export EventType
@@ -32,9 +32,9 @@ function AttatchEvents(document)
     # SEE: https://people.gnome.org/~gcampagna/docs/Gdk-3.0/Gdk.EventScroll.html
     canvas.mouse.scroll = @guarded (widget, event) -> begin
     ctx = getgc(widget)
-    print("Scrolling... ", event.direction)
-    # n.shape.flags[IsVScroll] = true
     node = document.children[1]
+    h   = node.shape.height
+    w   = node.shape.width
 
     # I am scrolling(jumping) by 30px here but Opera scrolls by about 50px
     # Opera lacks smoothness too but it seems to transition-scroll by the 50px
@@ -42,24 +42,28 @@ function AttatchEvents(document)
 
 
     if event.direction == 0
-        node.shape.scroll.y += 30
-        print("left... ", node.shape.scroll.y)
+        node.scroll.y += 30
         MoveAll(node,0,30)
 
         set_source_rgb(ctx, 1,1,1)
-        rectangle(ctx, node.shape.left, node.shape.top-30, node.shape.width, node.shape.height+30 )
+        rectangle(ctx, 0, 0, w, h )
         fill(ctx);
 
         DrawContent(ctx, node)
         reveal(widget)
 
     else
-        node.shape.scroll.y -= 30
-        print("left... ", node.shape.scroll.y)
-        MoveAll(node,0,-30)
+        node.scroll.y -= 30
+        height = node.scroll.contentHeight - node.shape.height
+        if node.scroll.y < height
+            node.scroll.y = height
+            MoveAll(node,0,height)
+        else
+            MoveAll(node,0,-30)
+        end
 
         set_source_rgb(ctx, 1,1,1)
-        rectangle(ctx, node.shape.left, node.shape.top-30, node.shape.width, node.shape.height+30 )
+        rectangle(ctx,  0,  0, w,  h )
         fill(ctx);
 
         DrawContent(ctx, node)

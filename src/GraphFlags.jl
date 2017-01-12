@@ -1,6 +1,7 @@
 export HasBorder,   BordersSame,  Clip, IsRoundBox,
        FixedHeight,
        DisplayBlock, DisplayInlineBlock, DisplayNone, DisplayTable, DisplayFlex,
+       LineBreakBefore, LineBreakAfter,
        IsHidden,
        FloatLeft,   FloatRight,
        AlignBase,   AlignMiddle,
@@ -8,7 +9,7 @@ export HasBorder,   BordersSame,  Clip, IsRoundBox,
        TextItalic,  TextOblique,  TextBold,
        IsHScroll, IsVScroll
 
-
+# position: static, relative, fixed, absolute
 const HasBorder     = 1
 const BordersSame   = 2
 const Clip          = 3
@@ -41,6 +42,11 @@ const TextBold       = 29
 
 const IsHScroll      = 30
 const IsVScroll      = 31
+
+
+const LineBreakBefore      = 32
+const LineBreakAfter      = 33
+
 
 #.==============================================================================
 

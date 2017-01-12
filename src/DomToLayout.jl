@@ -56,20 +56,46 @@ function AtributesToLayout(node)
       end
       if haskey(DOM, "text")
                     node.shape.text = DOM["text"]
-                  end
+      end
       if haskey(DOM, "color")
                     node.shape.color = GetTheColor(DOM["color"])
-                  end
-      if haskey(DOM, "display")
-                    # node.shape.display = DOM["display"]
-                  end
+      end
       if haskey(DOM, "width")
               node.shape.width = DOM["width"]
-            end
+      end
       if haskey(DOM, "height")
               node.shape.height = DOM["height"]
               node.shape.flags[FixedHeight] = true
-            end
+      end
+      if haskey(DOM, "display")
+          # like a <span> ...height/width are ignored
+         if DOM["display"] == "inline"
+              node.shape.width = 0
+              node.shape.height = 0
+              node.shape.flags[FixedHeight] = false
+              node.shape.flags[DisplayInline] = true
+         end
+         # LineBreakBefore, LineBreakAfter,
+          # set width has it's own row and set width/max-width ...default width is 100%
+          if DOM["display"] == "block"
+              node.shape.flags[DisplayBlock] = true
+              node.shape.flags[LineBreakBefore] = true
+              node.shape.flags[LineBreakAfter] = true
+          end
+          # Like inline but with height/width
+          if DOM["display"] == "inline-block"
+              node.shape.flags[DisplayInlineBlock] = true
+              node.shape.flags[LineBreakAfter] = true
+          end
+          if DOM["display"] == "none"
+              node.shape.flags[DisplayNone] = true
+          end
+          if DOM["display"] == "table"
+              node.shape.flags[DisplayTable] = true
+          end
+         # DisplayBlock, DisplayInlineBlock, DisplayNone, DisplayTable, DisplayFlex,
+
+      end
             #.........................................................................
 if haskey(DOM, "border")
           border = DOM["border"]
