@@ -9,18 +9,58 @@ function getReal(box::Draw)
               get(box.margin,  BoxOutline(0,0,0,0,0,0))    )
 end # padding, border, margin
 
-function getBorderBox(box::NBox, border, margin)
-    return ( box.left  - border.left, #+ border.left  + margin.left)
-             box.top   - border.top,   # + border.top   + margin.top)
-             box.width  + border.width,
-             box.height + border.height )
+macro BorderLeft(box, border)
+    return :( $(box).left  - ($(border).left *.5) )
+end
+macro BorderTop(box, border)
+    return :( $(box).top  - ($(border).top *.5) )
+end
+
+function getBorderBox(box::NBox, border)
+    return ( @BorderLeft(box, border), # l += border.left  *.5
+             @BorderTop(box, border),  # t += border.top  *.5
+             box.width  + (border.width  ),
+             box.height + (border.height )  )
 end
 function getContentBox(box::NBox, padding, border, margin)
-    return ( box.left   + padding.left   , #   + padding.left + margin.left
-             box.top    + padding.top    , #    + padding.top  + margin.top
-             box.width  - padding.width  ,
-             box.height - padding.height )
+    return ( box.left + padding.left , #   + padding.left + margin.left
+             box.top  + padding.top  ,  #   + padding.top  + margin.top
+             box.width  - padding.width  - (border.width *.5) ,
+             box.height - padding.height - (border.height *.5) )
 end
+function getMarginBox(box::NBox)
+  border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
+  margin = get(box.margin,  BoxOutline(0,0,0,0,0,0))
+    return ( box.left - border.left -margin.left,
+             box.top  - border.top  -margin.top,
+             box.width  + border.width  + margin.width ,
+             box.height + border.height + margin.height )
+end
+function getMarginBox(box::NBox, border, margin)
+    return ( box.left - border.left -margin.left,
+             box.top  - border.top  -margin.top,
+             box.width  + border.width  + margin.width ,
+             box.height + border.height + margin.height )
+end
+function getSize(box::NBox)
+  border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
+  margin = get(box.margin,  BoxOutline(0,0,0,0,0,0))
+    return ( box.width  + border.width  + margin.width ,
+             box.height + border.height + margin.height )
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
 function getContentBox(circle::Circle, padding, border, margin)
   dia = circle.radius*2+1
     return ( circle.left   + border.left   + padding.left + margin.left   ,
@@ -49,11 +89,12 @@ function getSize(circle::Circle)
     return ( dia + border.width  + margin.width ,
              dia + border.height + margin.height )
 end
-function getSize(box::NBox)
-  border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
-  margin = get(box.margin,  BoxOutline(0,0,0,0,0,0))
-    return ( box.width  + border.width  + margin.width ,
-             box.height + border.height + margin.height )
+function getMarginBox(circle::Circle, border, margin)
+    dia = circle.radius*2+1
+    return ( circle.left,
+             circle.top,
+             dia + border.width  + margin.width ,
+             dia + border.height + margin.height )
 end
 function getMarginBox(circle::Circle)
   border = get(circle.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
@@ -64,25 +105,12 @@ function getMarginBox(circle::Circle)
              dia + border.width  + margin.width ,
              dia + border.height + margin.height )
 end
-function getMarginBox(circle::Circle, border, margin)
-    dia = circle.radius*2+1
-    return ( circle.left,
-             circle.top,
-             dia + border.width  + margin.width ,
-             dia + border.height + margin.height )
-end
-function getMarginBox(box::NBox)
-  border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
-  margin = get(box.margin,  BoxOutline(0,0,0,0,0,0))
-    return ( box.left, box.top,
-             box.width  + border.width  + margin.width ,
-             box.height + border.height + margin.height )
-end
-function getMarginBox(box::NBox, border, margin)
-    return ( box.left, box.top,
-             box.width  + border.width  + margin.width ,
-             box.height + border.height + margin.height )
-end
+
+
+
+
+
+
 
  # TODO: getRelativeBox to calculate a box relative to parent
 function getRelativeBox(window::Draw, box::Draw, border, margin)

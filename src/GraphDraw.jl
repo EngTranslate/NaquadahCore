@@ -2,25 +2,114 @@
 # c = @Canvas()
 # win = @Window("Canvas", 800, 600)
 # push!(win, c)
+include("DomUtilities.jl")
 
 module Naquadraw
-using Cairo, Gtk.ShortNames # Graphics,
+
+using Cairo, Gtk.ShortNames # , NaquadahEvents # Graphics,
+using Gtk
 
   include("GraphFlags.jl")
   include("GraphTypes.jl")
   include("GraphMethods.jl")
+
 
 export
           # get real data (margin, padding, border) instead of Nullables
           getReal, DrawBox, DrawCircle, DrawRoundedBox, textToRows, DrawText,
           PushToRow, FinalizeRow,
           # get calculated metrics
-          getBorderBox, getContentBox, getMarginBox, getSize
-          TotalShapeWidth, TotalShapeHeight
+          getBorderBox, getContentBox, getMarginBox, getSize,
+          TotalShapeWidth, TotalShapeHeight,
+          DrawContent, DrawANode, setWindowSize, InitializeRow
+          include("Events.jl")
 
 include("LayoutBuild.jl")
 # ======================================================================================
-#function clip(ctx::CairoContext, path)
+
+# ======================================================================================
+function InitializeRow(node,l, t, w, h)
+    (length(node.children) == 0) && return
+    rows = node.rows
+
+        if length(rows) == 0 # no row!
+          row = Row(l, w)  # row.x = l
+          row.y = t
+          push!(rows, row)
+        end
+end
+
+# ======================================================================================
+
+# ======================================================================================
+function setWindowSize(w,h, n)
+  n.shape = NBox()
+    n.shape.color = [.5,.8,.8]
+    n.shape.padding = BoxOutline(10,10,10,10,20,20)
+    # we need to make sure we set VP based on padding!
+    padding = get(n.shape.padding, BoxOutline(0,0,0,0,0,0))
+    n.shape.left    = padding.left
+    n.shape.top     = padding.top
+    n.shape.width   = w - padding.width
+    n.shape.height  = h - padding.height
+    # IsHScroll, IsVScroll
+    n.shape.flags[IsVScroll] = true
+end
+
+# ======================================================================================
+function DrawContent(ctx, node)
+  rows = node.rows
+  parentArea = getContentBox(node.shape, getReal(node.shape)... )
+
+  for i in 1:length(rows)
+      row = rows[i]
+      for j in 1:length(row.nodes)
+          child = row.nodes[j]
+          shape = getShape(child)
+
+          # Only draw if visible! node.shape.flags[FixedHeight] == true &&
+          if row.y < node.shape.top + node.shape.height
+                 isa(shape, TextLine) && DrawText(ctx, row, shape)
+                 isa(shape, Circle) && DrawCircle(ctx, parentArea, shape)
+                 isa(shape, NBox) &&
+                   if child.shape.flags[IsRoundBox] == true
+                     DrawRoundedBox(ctx, 1, shape)
+                   else
+                     DrawBox(ctx, shape)
+                   end
+
+
+                !isa(child, TextLine) && DrawContent(ctx, child)
+
+         end
+      end
+  end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ======================================================================================
 #
 # CALLED FROM:
@@ -30,11 +119,10 @@ function DrawCircle(ctx::CairoContext, parentArea, circle::Circle)
         pl, pt, pw, ph = parentArea
 
     border = get(circle.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
-    margin = get(circle.margin,  BoxOutline(0,0,0,0,0,0))
 
               radius = circle.radius + border.left
-              l = circle.left + margin.left + radius #+ pl
-              t = circle.top  + margin.top  + radius #+ pt
+              l = circle.left  + radius #+ pl
+              t = circle.top   + radius #+ pt
 set_antialias(ctx,6)
           set_source_rgb( ctx, circle.color...)
                   move_to(ctx, l, t)
@@ -54,15 +142,13 @@ end
 #======================================================================================#
 function DrawBox(ctx::CairoContext, box::NBox)
     border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
-    margin = get(box.margin,  BoxOutline(0,0,0,0,0,0))
-    l,t,w,h = getBorderBox(box, border, margin)
+    l,t,w,h = getBorderBox(box, border)
     r, b = l+w, t+h
-    borderWidth = max(border.left,border.top,border.right,border.bottom)
 #= Draw a frame around outside of box!=#
-    set_source_rgb(ctx, border.color...)
-    set_line_width(ctx, border.left);
-    rectangle(ctx,l-1,t-1,w+3,h+3 )
-    stroke(ctx);
+    #set_source_rgb(ctx, border.color...)
+    #set_line_width(ctx, border.left);
+    #rectangle(ctx,l-1,t-1,w+3,h+3 )
+    #stroke(ctx);
 
     if box.flags[BordersSame] == true
         rectangle(ctx,l,t,w,h )
@@ -74,6 +160,7 @@ function DrawBox(ctx::CairoContext, box::NBox)
         rectangle(ctx,l,t,w,h )
         stroke(ctx);
     else
+          borderWidth = max(border.left,border.top,border.right,border.bottom)
           rectangle(ctx,l,t,w,h )
           clip(ctx)
 
@@ -100,8 +187,7 @@ end
 #======================================================================================#
 function DrawRoundedBox(ctx::CairoContext, parentArea, box::NBox)
     border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
-    margin = get(box.margin,  BoxOutline(0,0,0,0,0,0))
-    l,t,w,h = getBorderBox(box, border, margin)
+    l,t,w,h = getBorderBox(box, border)
     r, b = l+w, t+h
     set_antialias(ctx,1)
 #= Draw a frame around outside of box!

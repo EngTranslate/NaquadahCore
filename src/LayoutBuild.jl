@@ -1,4 +1,4 @@
-
+export MoveAll
 #======================================================================================#
 function getShape(item)
       if isa(item, TextLine)
@@ -18,37 +18,31 @@ function FinalizeRow(thing, row)
     # Set any node heights that are % values.
   # thing.width
   shiftAll = 0
+  #..........................................
+  # vertical/hirizintal shift
+  #..........................................
   for i in 1:length(row.nodes)
     item = row.nodes[i]
-    if isa(item, TextLine)
-      TextStyle = item.Reference.shape
+    X,Y = 0,0
+        if isa(item, TextLine)
+            TextStyle = item.Reference.shape
             if TextStyle.flags[TextCenter] == true
-                shiftAll = (row.space * .5)
-                row.space = shiftAll
+                X = (row.space * .5)
+                row.space = X
             elseif  TextStyle.flags[TextRight] == true
-                shiftAll = row.space
+                X = row.space
                 row.space = 0
             end
 
-            if  TextStyle.flags[AlignBase] == true # AlignBase, AlignMiddle
-              item.top += (row.height-TextStyle.height)
-            end
-            if TextStyle.flags[AlignMiddle] == true
-              item.top += (row.height-TextStyle.height) *.5
-            end
-    end
-    thing = getShape(item)
-    thing.left += shiftAll 
-    #if isa(item, TextLine)
-    #  item.left += shiftAll
-    #else
-    #  item.shape.left += shiftAll
-    #end
+            TextStyle.flags[AlignBase]    &&  (Y = (row.height-TextStyle.height))
+            TextStyle.flags[AlignMiddle]  &&  (Y = (row.height-TextStyle.height) *.5)
+        end
 
-
-  end
-#....................................... floats
-    # LEFT: MoveNodeToLeft(row, index)
+        MoveAll(row.nodes[i], X,Y)
+      end
+    #..........................................
+    # float LEFT: MoveNodeToLeft(row, index)
+    #..........................................
     for i in 2:length(row.nodes)
         # item = row.nodes[i].shape
           shape = getShape(row.nodes[i])
@@ -62,7 +56,9 @@ function FinalizeRow(thing, row)
             MoveNodeToLeft(row, i)
         end
     end
-    # Right: MoveNodeToRight(row, index)
+    #..........................................
+    # float RIGHT: MoveNodeToRight(row, index)
+    #..........................................
     for i in length(row.nodes):-1:1
       # row.space
       shape = getShape(row.nodes[i])
@@ -230,20 +226,21 @@ function textToRows(node, MyText) # .rows, parentArea
      lines = []
      lastLine = ""
      lineTop = pt + MyTextShape.size # Because text is drawn above the line!
-     words = split(MyTextShape.text) # TODO: this needs improved!
-     line = words[1] * " "
+     words = split(MyTextShape.text, r"(?<=.)(?=[\s])")
+     # split(MyTextShape.text) # TODO: this needs improved!
+     line = words[1]
 
     for w in 2:length(words)
         lastLine = line
-        line = lastLine * words[w] * " "
+        line = lastLine * words[w]
         extetents = text_extents(ctx,line )
-        # long enough
+        # long enough ...cut!
         if extetents[3] >= lineWidth
             te = text_extents(ctx, lastLine )
             textLine = TextLine(MyText, lastLine, lineLeft, 0, te[3], MyTextShape.height)
             PushToRow(node, textLine)
-            line = words[w] * " "
-
+            line = words[w]
+            # What's this for?
             if isPartRow == true
                 lineWidth = width
                 lineLeft = pl
@@ -254,6 +251,6 @@ function textToRows(node, MyText) # .rows, parentArea
     end
     # Make sure we flush out the last row!
     te = text_extents(ctx,line )
-    textLine = TextLine(MyText, lastLine, lineLeft, 0, te[3], MyTextShape.height)
+    textLine = TextLine(MyText, line, lineLeft, 0, te[3], MyTextShape.height)
     PushToRow(node, textLine)
 end

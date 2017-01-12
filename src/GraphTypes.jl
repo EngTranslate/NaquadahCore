@@ -1,15 +1,16 @@
 
 
 export
-          # container for shapes:
-          Element, getShape,
+          # Structural:
+          Element, Row, NText,
           # General utility:
-          Point, BoxOutline, Square,
-          # Shapes:
-          Border, NBox, Circle, Arc, NText, Row, TextLine,
+          Point, Square,
+          # Drawable Shapes:
+          NBox, Circle, Arc, TextLine,
+          # Constructors:
+          Border, BoxOutline
 
-          #types
-          Row
+
 
 abstract Geo
 
@@ -36,6 +37,7 @@ end
 
 
 
+#-------------------------------------------------------------------------------
 type Row
     flags::BitArray{1} #Any
     nodes::Array{Any}
@@ -43,8 +45,21 @@ type Row
     space::Float32 # Space remaining 'til full
     x::Float32
     y::Float32
-    # Row() = new(falses(32),[],0,0,0,0)
+    Row() = new(falses(32),[],0,0,0,0)
     Row(x, wide) = new(falses(32),[],0,wide,x,0)
+end
+#-------------------------------------------------------------------------------
+type Element
+    DOM::Dict       # Reference to dictionary counterpart of this node
+    parent::Any               # This node's parent
+    children::Array{Element,1} # Children in order they appear in DOM
+    rows::Array{Row,1} # A layout property
+    shape::Any # link to layout representation of node
+        function Element(DOM=Dict())
+            parent = nothing
+            children::Array{Element,1} = []
+            new(DOM, parent, children, [], nothing)
+        end
 end
 #-------------------------------------------------------------------------------
 type Point <: Geo
@@ -103,10 +118,11 @@ end
 # ==============================================================================
 type NBox <: Draw
      @import_fields(BasicShape)
+    scroll::Point
     padding::Nullable{BoxOutline}
     border::Nullable{Border}
     NBox() = new(falses(64), [], 1, Nullable{BoxOutline}(), Nullable{Point}(), 0,0,0,0,
-                    Nullable{BoxOutline}(), Nullable{Border}())
+                    Point(0,0), Nullable{BoxOutline}(), Nullable{Border}() )
 end
 
 type Circle <: Draw
