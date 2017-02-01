@@ -1,3 +1,4 @@
+#=
 include("GraphDraw.jl")
 include("Events.jl")
 using Gtk.ShortNames, Cairo, Colors #  Graphics,
@@ -135,3 +136,4 @@ l, t, w, h = getContentBox(box, getReal(box)... )
 println("Rows: ",length(rows))
 end
 show(c)
+=#

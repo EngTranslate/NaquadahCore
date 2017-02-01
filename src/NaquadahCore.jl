@@ -5,6 +5,7 @@
 include("GraphDraw.jl")
 include("DomUtilities.jl")
 include("DomTree.jl")
+include("GraphFlags.jl")
 
 using Gtk, Gtk.ShortNames, Cairo   # Colors
 using NaquadahDOM, Naquadraw
@@ -40,6 +41,11 @@ function CreateLayoutTree(document, node)
             end
         end
     end
+    # Clean-up!
+        if length(children)>0 && node.rows[end].flags[RowFinalized] == false
+            FinalizeRow(node, node.rows[end])
+            println("rows: ", length(node.rows))
+        end
 
     if length(node.rows) > 0
         node.scroll.contentHeight = node.rows[end].y + node.rows[end].height - node.shape.top

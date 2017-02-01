@@ -161,8 +161,10 @@ if haskey(DOM, "border")
         if haskey(font, "align")
             if font["align"] == "center"
                 node.shape.flags[TextCenter] = true
+                println(node.shape.flags[TextCenter])
             elseif font["align"] == "right"
                 node.shape.flags[TextRight] = true
+                println(node.shape.flags[TextRight])
             #else node.shape.flags[TextJustify] = true
             end
         end

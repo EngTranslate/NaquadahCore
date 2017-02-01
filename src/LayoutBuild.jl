@@ -11,6 +11,9 @@ end
 #
 #======================================================================================#
 function FinalizeRow(thing, row)
+    if row.flags[RowFinalized] == true
+        return
+    end
     # move objects up or down (withing row space) depending on layout options.
     # Be sure that the heights of all objects have been set.
     # Float the floats
@@ -21,22 +24,38 @@ function FinalizeRow(thing, row)
   #..........................................
   # vertical/hirizintal shift
   #..........................................
+      X = 0
+  #if row.flags[TextCenter] == true
+#      X = row.space * .5
+ # elseif row.flags[TextRight] == true
+#      X = row.space
+#      row.space = 0
+ # end
+
   for i in 1:length(row.nodes)
     item = row.nodes[i]
-    X,Y = 0,0
-        if isa(item, TextLine)
-            TextStyle = item.Reference.shape
-            if TextStyle.flags[TextCenter] == true
-                X = (row.space * .5)
-                row.space = X
-            elseif  TextStyle.flags[TextRight] == true
+    Y = 0
+
+    if isa(item, TextLine)
+        TextLike = item.reference.shape
+    else
+        TextLike = item.shape
+    end
+
+
+            if TextLike.flags[TextCenter] == true
+                X = row.space * .5
+            elseif TextLike.flags[TextRight] == true
                 X = row.space
                 row.space = 0
             end
 
-            TextStyle.flags[AlignBase]    &&  (Y = (row.height-TextStyle.height))
-            TextStyle.flags[AlignMiddle]  &&  (Y = (row.height-TextStyle.height) *.5)
-        end
+            TextLike.flags[AlignBase]    &&  (Y = (row.height-TextLike.height))
+            if TextLike.flags[AlignMiddle]  &&  row.height > TextLike.height
+                Y = (row.height-TextLike.height) *.5
+                println(Y)
+            end
+
 
         MoveAll(row.nodes[i], X,Y)
       end
@@ -72,7 +91,82 @@ function FinalizeRow(thing, row)
         end
     end
 
+    # Mark row as finalized!
+    row.flags[RowFinalized] = true
 end
+
+#======================================================================================#
+# PushToRow(rows, parentArea, circle, circleHeight, circleWidth)
+function PushToRow(node, thing) # .rows, parentArea
+
+  shape = node.shape
+  if isa(thing,TextLine)
+      thingShape = thing
+  else
+      thingShape = thing.shape
+  end
+      rows = node.rows
+      box = getContentBox(shape, getReal(shape)... )
+      l, t, w, h = box
+      thingWidth, thingHeight = getSize(thingShape)
+  #end
+
+    # Make new row if: object too wide
+    if length(rows) < 1
+        Row(rows, l, t, w)
+    end
+    row = rows[end]
+
+    if thingShape.flags[DisplayBlock] == true && thingShape.width < 1
+        if length(row.nodes) > 0
+            FinalizeRow(box, row)
+            row = Row(rows, l, row.y + row.height, w)
+        end
+        thingShape.width = w #- (thingShape.border + )
+        row.space = 0
+    else
+        # not enough space.. new row!
+        if row.space < thingWidth
+            FinalizeRow(box, row)
+            newRow = Row(rows,  l + thingWidth,  row.y + row.height,  w - thingWidth)
+            push!(newRow.nodes, thing)
+            newRow.height = thingHeight
+            thingShape.left = l
+            thingShape.top = newRow.y
+            return
+        end
+    end
+    # if object height is greater than row reset row.height
+    if row.height < thingHeight
+            row.height = thingHeight
+    end
+    # add object to row and calculate remaining space
+    if row.y == 0
+      row.y = t
+    end
+
+    thingShape.top = row.y # TODO: a bunch of stuff
+    thingShape.left = row.x
+    row.space -= thingWidth
+    row.x += thingWidth
+
+
+    #    node.shape.flags[LineBreakAfter] == true
+
+    push!(row.nodes, thing)
+
+
+
+
+end
+
+
+#======================================================================================#
+#
+#======================================================================================#
+
+
+
 #======================================================================================#
 function MoveNodeToLeft(row, index)
   node = row.nodes[index]
@@ -115,75 +209,8 @@ function LineBreak(node) # .rows, parentArea
     box = getContentBox(node.shape, getReal(node.shape)... )
     l, t, w, h = box
     FinalizeRow(box, row)
-    println("row.height: ",row.height)
-    Row(node.rows,  l,  row.y + row.height,  w)
+    return Row(node.rows,  l,  row.y + row.height,  w)
 end
-#======================================================================================#
-# PushToRow(rows, parentArea, circle, circleHeight, circleWidth)
-function PushToRow(node, thing) # .rows, parentArea
-
-  shape = node.shape
-  if isa(thing,TextLine)
-    thingShape = thing
-  else
-    thingShape = thing.shape
-  end
-  rows = node.rows
-  box = getContentBox(shape, getReal(shape)... )
-  l, t, w, h = box
-  thingWidth, thingHeight = getSize(thingShape)
-    # if object is too wide make new row
-    if length(rows) < 1
-        Row(rows, l, t, w)
-    end
-    row = rows[end]
-    #  if length(row.nodes) > 0 && thingShape.flags[LineBreakBefore] == true # break-line before element
-    #      println("Yes")
-    #      LineBreak(node)
-    #  end
-
-     #      #      if length(row.nodes) < 1
-     #      #      node.shape.flags[LineBreakBefore] == true
-    # not enough space.. new row!
-    if row.space < thingWidth
-        FinalizeRow(box, row)
-           newRow = Row(rows,  l + thingWidth,  row.y + row.height,  w - thingWidth)
-                push!(newRow.nodes, thing)
-                newRow.height = thingHeight
-                thingShape.left = l
-                thingShape.top = newRow.y
-            return
-    end
-    # if object height is greater than row reset row.height
-    if row.height < thingHeight
-            row.height = thingHeight
-    end
-    # add object to row and calculate remaining space
-    if row.y == 0
-      row.y = t
-    end
-    thingShape.top = row.y # TODO: a bunch of stuff
-    thingShape.left = row.x
-    row.space -= thingWidth
-    row.x += thingWidth
-    push!(row.nodes, thing)
-
-
-    #    node.shape.flags[LineBreakAfter] == true
-
-
-
-
-end
-
-
-#======================================================================================#
-#
-#======================================================================================#
-
-
-
-
 #======================================================================================#
 #
 #======================================================================================#
@@ -223,10 +250,7 @@ function textToRows(node, MyText) # .rows, parentArea
       rows = node.rows
 
       if length(rows) == 0 # no row!
-        row = Row(pl, width)
-        row.x = pl
-        row.y = pt
-        push!(rows, row)
+        Row(rows, pl, pt, width)
       end
       if length(rows[end].nodes) > 0 # Already has nodes!
           lineWidth = rows[end].space

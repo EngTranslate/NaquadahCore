@@ -57,12 +57,12 @@ type Row
     space::Float32 # Space remaining 'til full
     x::Float32
     y::Float32
-    Row() = new(falses(32),[],0,0,0,0,0)
-    Row(x, wide) = new(falses(32),[],0,0,wide,x,0)
+    # Row() = new(falses(32),[],0,0,0,0,0)
+    # Row(x, wide) = new(falses(32),[],0,0,wide,x,0)
     Row(x, y, wide) = new(falses(32),[],0,0,wide,x,y)
-    function Row(row, x, y, w)
+    function Row(rows, x, y, w)
         r = Row(x, y, w)
-        push!(row,r)
+        push!(rows,r)
         return r
     end
 end
@@ -113,17 +113,22 @@ type Border <: Geo
 end
 # ==============================================================================  <: Shape
 
-type BasicShape
+type BasicShape <: Draw
     flags::BitArray{1}
     color::Array
     opacity::Float32
+    padding::Nullable{BoxOutline}
+    border::Nullable{Border}
     margin::Nullable{BoxOutline}
     offset::Nullable{Point}
     left::Float32
     top::Float32
     width::Float32
     height::Float32
-    BasicShape() = new(falses(64), [0,0,0], 1, Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0)
+    BasicShape() = new(falses(64), [.0,.0,.0], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0)
+end
+function Shape()
+    return (falses(64), [.0,.0,.0], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0)
 end
 # ==============================================================================
 # ==============================================================================
@@ -131,19 +136,14 @@ end
 # ==============================================================================
 type NBox <: Draw
      @import_fields(BasicShape)
-    padding::Nullable{BoxOutline}
-    border::Nullable{Border}
-    NBox() = new(falses(64), [], 1, Nullable{BoxOutline}(), Nullable{Point}(), 0,0,0,0,
-                 Nullable{BoxOutline}(), Nullable{Border}() )
+    NBox() = new( falses(64), [0,0,0], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0 )
 end
 
 type Circle <: Draw
      @import_fields(BasicShape)
     radius::Float32
-    padding::Nullable{BoxOutline}
-    border::Nullable{Border}
-    Circle() = new(falses(64), [], 1, Nullable{BoxOutline}(), Nullable{Point}(), 0,0,0,0,
-                    0, Nullable{BoxOutline}(), Nullable{Border}())
+    Circle() = new(falses(64), [0,0,0], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0,
+                    0,)
 end
 # Box, RoundBox, Arc, Circle, Line, Curve, Text, Ellipse
 # Polygon, Polyline, Path
@@ -153,7 +153,6 @@ type Arc <: Draw
     origin::Point
     startAngle::Float32
     stopAngle::Float32
-    # border::Nullable{BoxOutline}
     Arc() = new(0, Point(0,0), 0,0)
 end
 
@@ -164,13 +163,13 @@ type NText <: Draw
     size::Float32
     lineHeight::Float16
     family::String
-    NText() = new(falses(64), [0,0,0], 1, Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0,
+    NText() = new(falses(64), [0,0,0], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0,
                    "", 12, 1.4,  "Sans")
 end
 #=---------------------------------=#
 type TextLine <: Draw
     flags::BitArray{1}
-    Reference::Any
+    reference::Any
     text::String
     left::Float32
     top::Float32

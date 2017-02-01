@@ -1,32 +1,35 @@
-export HasBorder,   BordersSame,  Clip, IsRoundBox,
-       FixedHeight,
-       DisplayBlock, DisplayInlineBlock, DisplayNone, DisplayTable, DisplayFlex,
-       LineBreakBefore, LineBreakAfter,
-       IsHidden,
-       FloatLeft,   FloatRight,
-       AlignBase,   AlignMiddle,
-       TextCenter,  TextRight,    TextJustify,
-       TextItalic,  TextOblique,  TextBold,
-       IsHScroll, IsVScroll
+export
+        FloatLeft,   FloatRight,
+        RowFinalized,
+        HasBorder,   BordersSame,  Clip, IsRoundBox,
+        FixedHeight,
+        DisplayBlock, DisplayInlineBlock, DisplayNone, DisplayTable, DisplayFlex,
+        LineBreakBefore, LineBreakAfter,
+        IsHidden,
+        AlignBase,   AlignMiddle,
+        TextCenter,  TextRight,    TextJustify,
+        TextItalic,  TextOblique,  TextBold,
+        IsHScroll, IsVScroll
 
+const FloatLeft     = 1
+const FloatRight    = 2
+const RowFinalized    = 3
 # position: static, relative, fixed, absolute
-const HasBorder     = 1
-const BordersSame   = 2
-const Clip          = 3
-const IsRoundBox    = 4
-const FixedHeight   = 5
+const HasBorder     = 11
+const BordersSame   = 12
+const Clip          = 13
+const IsRoundBox    = 14
+const FixedHeight   = 15
 # https://developer.mozilla.org/en-US/docs/Web/CSS/display
-const DisplayBlock   = 6
-const DisplayInlineBlock   = 7
-const DisplayNone   = 8
-const DisplayTable   = 9
-const DisplayFlex   = 10
+const DisplayBlock   = 16
+const DisplayInlineBlock   = 17
+const DisplayNone   = 18
+const DisplayTable   = 19
+const DisplayFlex   = 20
 
 # visibility: visible|hidden|collapse|initial|inherit;
-const IsHidden     = 11
+const IsHidden     = 21
 
-const FloatLeft     = 20
-const FloatRight    = 21
 
 const AlignBase      = 22
 const AlignMiddle    = 23
