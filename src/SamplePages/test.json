@@ -17,6 +17,22 @@
 		},
 
 "body":[
+	{">":"div",
+  	"display":"block",
+	"color":[0.6,0.6,0.6],
+  	"padding":5,
+  	"border":{"radius":7, "width":"thin", "style":"solid", "color":[0.3,0.0,0.6]},
+  	"nodes":[
+			{">":"p",   "font":{ "color":"lightgreen", "size":32, "align":"center", "lineHeight":1.4, "family":"Georgia", "vertical-align":"middle" },
+						"text":"Presenting Naquadah: As a test of "
+			},
+			{">":"p",   "font":{ "color":"purple", "size":64, "align":"center", "lineHeight":1.4, "family":"Georgia", "vertical-align":"middle" },
+						"text":" julia "
+			},
+			{">":"p",   "font":{ "color":"lightgreen", "size":32, "align":"center", "lineHeight":1.4, "family":"Georgia", "vertical-align":"middle" },
+						"text":"in Technical and General Computing!"
+			}]
+	},
 		{">":"div",
       "display":"inline-block",
   		"color":[0.5,0.8,0.8],
@@ -74,8 +90,8 @@
       			 "text":"This is some sample text for testing the text printing capabilities of cairo. This is some sample text for testing the text printing capabilities of cairo. This is some sample text for testing the text printing capabilities of cairo. This is some sample text for testing the text printing capabilities of cairo.. ."
            },
 
-		   {">":"div", "display":"inline-block", "color":[0.5,0.7,0.5],
-   			"float":"left", "margin":15, "width":100, "height":40, "display":"block",
+		   {">":"div", "display":"block", "color":[0.5,0.7,0.5],
+   			"float":"left", "margin":15, "width":100, "height":40,
    			"border":{"radius":7, "width":"thin", "style":"solid", "color":"black"},
    			"nodes":[ {">":"p",
    							"font":{ "color":"black", "size":12, "align":"center", "lineHeight":1.4, "family":"Georgia" },
@@ -99,13 +115,15 @@
 	},
 
 	{">":"div", "display":"block", "color":[0.7,0.5,0.5],
-		"float":"left", "margin":15, "height":40,
+		"height":40,
 		"border":{"radius":7, "width":"thin", "style":"solid", "color":"black"},
 		"nodes":[ {">":"p",
 			"font":{ "color":"black", "size":12, "align":"center", "lineHeight":1.4, "family":"Georgia" },
 			"text":"This is an inline-block element with no width set!"
 					}
 				]
-			}
+			},
+	{">":"circle", "radius":5, "color":"pink",
+	       		   "border":{"width":"thin", "style":"solid", "color":"blue"}}
 
 ]}
